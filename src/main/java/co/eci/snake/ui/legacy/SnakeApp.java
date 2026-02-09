@@ -1,18 +1,32 @@
 package co.eci.snake.ui.legacy;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
 import co.eci.snake.concurrency.SnakeRunner;
 import co.eci.snake.core.Board;
 import co.eci.snake.core.Direction;
 import co.eci.snake.core.Position;
 import co.eci.snake.core.Snake;
 import co.eci.snake.core.engine.GameClock;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executors;
 
 public final class SnakeApp extends JFrame {
 
@@ -94,10 +108,10 @@ public final class SnakeApp extends JFrame {
 
     if (snakes.size() > 1) {
       var p2 = snakes.get(1);
-      im.put(KeyStroke.getKeyStroke('A'), "p2-left");
-      im.put(KeyStroke.getKeyStroke('D'), "p2-right");
-      im.put(KeyStroke.getKeyStroke('W'), "p2-up");
-      im.put(KeyStroke.getKeyStroke('S'), "p2-down");
+      im.put(KeyStroke.getKeyStroke('A',0), "p2-left");
+      im.put(KeyStroke.getKeyStroke('D',0), "p2-right");
+      im.put(KeyStroke.getKeyStroke('W',0), "p2-up");
+      im.put(KeyStroke.getKeyStroke('S',0), "p2-down");
       am.put("p2-left", new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -132,9 +146,11 @@ public final class SnakeApp extends JFrame {
     if ("Action".equals(actionButton.getText())) {
       actionButton.setText("Resume");
       clock.pause();
+      board.setPaused(true);
     } else {
       actionButton.setText("Action");
       clock.resume();
+      board.setPaused(false);
     }
   }
 
@@ -212,11 +228,14 @@ public final class SnakeApp extends JFrame {
       // Serpientes
       var snakes = snakesSupplier.get();
       int idx = 0;
+      Integer idx2 = (snakes.size() > 1) ? 1 : null;
       for (Snake s : snakes) {
         var body = s.snapshot().toArray(new Position[0]);
         for (int i = 0; i < body.length; i++) {
           var p = body[i];
-          Color base = (idx == 0) ? new Color(0, 170, 0) : new Color(0, 160, 180);
+          Color base = (idx == 0) ? 
+              ((idx2 != null) ? new Color(0, 170, 0) : new Color(182, 103, 191)) :
+              (idx == 1) ? new Color(182, 103, 191) : new Color(0, 160, 180);
           int shade = Math.max(0, 40 - i * 4);
           g2.setColor(new Color(
               Math.min(255, base.getRed() + shade),

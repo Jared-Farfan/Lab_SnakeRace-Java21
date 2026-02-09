@@ -5,6 +5,10 @@ Laboratorio de programación concurrente: condiciones de carrera, sincronizació
 
 ---
 
+## Jared Sebastian Farfan Guevara.
+
+---
+
 ## Requisitos
 
 - **JDK 21** (Temurin recomendado)
@@ -57,32 +61,80 @@ co.eci.snake
 ## Parte I — (Calentamiento) `wait/notify` en un programa multi-hilo
 
 1. Toma el programa [**PrimeFinder**](https://github.com/ARSW-ECI/wait-notify-excercise).
+  -   [Repositorio](https://github.com/Jared-Farfan/wait-notify-excercise).
 2. Modifícalo para que **cada _t_ milisegundos**:
    - Se **pausen** todos los hilos trabajadores.
    - Se **muestre** cuántos números primos se han encontrado.
    - El programa **espere ENTER** para **reanudar**.
+
+![alt text](img/parte1.2.png)
+
+
 3. La sincronización debe usar **`synchronized`**, **`wait()`**, **`notify()` / `notifyAll()`** sobre el **mismo monitor** (sin _busy-waiting_).
+
+Se realizaron dos formas diferentes para entender el uso del synchronized con parametro de un objeto, para enternder la diferencia de que este se use intenamente de cada hilo o en base al hilo principal.
+
+ - Usando synchronized en el cotrolador
+
+![alt text](img/runBloqueoGeneral.png)
+
+ - Usando ssynchronized por cada  hilo 
+
+![alt text](img/runBloqueoIndividual.png)
+
 4. Entrega en el reporte de laboratorio **las observaciones y/o comentarios** explicando tu diseño de sincronización (qué lock, qué condición, cómo evitas _lost wakeups_).
 
 > Objetivo didáctico: practicar suspensión/continuación **sin** espera activa y consolidar el modelo de monitores en Java.
 
 ---
 
+ - A: Usando synchronized en el controlador podemos ver que cunado un hilo llega a este esto y es detenido detiene a todos los demas hilos pues no pueden acceder al mismo recurso ya que el objeto el cual es parametro del synchronized es comun para todos.
+
+ - B: Al tener synchronized en cada hilo se tiene un "objeto" parametro diferente dentro de este metodo lo que hace que no se detengan pues no compiten por un recurso, esto sirve ya que podemos elegir q hilos se detendria y cuales continuan.
+
 ## Parte II — SnakeRace concurrente (núcleo del laboratorio)
 
 ### 1) Análisis de concurrencia
 
 - Explica **cómo** el código usa hilos para dar autonomía a cada serpiente.
+
+  Eljuego crea hilos para cada serpiente (Runnable), cada turno o movimiento cada hilo valida el movimiento y toma una decision en base a el.
+
 - **Identifica** y documenta en **`el reporte de laboratorio`**:
   - Posibles **condiciones de carrera**.
+
+    Viendo que la clase Boar tiene los metodos para consultar los objetos del mapa de forma synchronize y la logica para su siguente posicion no habria condiciones de carrera pues cuando una serpiente este usando eso ninguna más lo hará.
+
+    ![alt text](img/boarSyn.png.png)
+
   - **Colecciones** o estructuras **no seguras** en contexto concurrente.
+
+    En cocurrencia podemos ver como insegura toda estructura que se consulte recurrentemente y puede alterar el comportamiento de un objeto, commo lo son: map, array, list, set, Queue, Stack , etc.
+    En este caso las estucturas son la que contienen los objetos del mapa como lo son: (contenidas en la clase Boar)
+
+    ![alt text](img/objBoar.png)
+
   - Ocurrencias de **espera activa** (busy-wait) o de sincronización innecesaria.
+
+    Se puede crear una espera activa en el movimiento de las serpientes y ya que si estas comen un raton puede entar al loop para ubicar los nuevos objeto y quedar hay si no hay posiciónes libres.
+    El juego no esta puede pausar en realidad.
 
 ### 2) Correcciones mínimas y regiones críticas
 
 - **Elimina** esperas activas reemplazándolas por **señales** / **estados** o mecanismos de la librería de concurrencia.
+
+
+
+Erro en la pausa, se añadio un metodo en boar para notificar a los hilos y que se detengan de la forma correcta.
+![alt text](img/pausaBoard.png)
+
 - Protege **solo** las **regiones críticas estrictamente necesarias** (evita bloqueos amplios).
+
+
+
 - Justifica en **`el reporte de laboratorio`** cada cambio: cuál era el riesgo y cómo lo resuelves.
+
+
 
 ### 3) Control de ejecución seguro (UI)
 
