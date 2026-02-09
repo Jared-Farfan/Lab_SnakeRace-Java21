@@ -7,14 +7,16 @@ public final class Snake {
   private final Deque<Position> body = new ArrayDeque<>();
   private volatile Direction direction;
   private int maxLength = 5;
+  private int id;
 
-  private Snake(Position start, Direction dir) {
+  private Snake(Position start, Direction dir, int id) {
     body.addFirst(start); 
     this.direction = dir;
+    this.id = id;
   }
   // Factory method for creating a new snake at a given position and direction
-  public static Snake of(int x, int y, Direction dir) {
-    return new Snake(new Position(x, y), dir);
+  public static Snake of(int x, int y, Direction dir, int id) {
+    return new Snake(new Position(x, y), dir, id);
   }
 
   public Direction direction() { return direction; }
@@ -41,5 +43,9 @@ public final class Snake {
     body.addFirst(newHead);
     if (grow) maxLength++;
     while (body.size() > maxLength) body.removeLast();
+  }
+  
+  public int getId() {
+    return id;
   }
 }

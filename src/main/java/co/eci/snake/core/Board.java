@@ -221,4 +221,17 @@ public final class Board {
     public synchronized int snakeCount() {
         return snakes.size();
     }
+
+    /** Verifica si el juego terminó (1 o menos serpientes vivas) */
+    public synchronized boolean isGameOver() {
+        return snakes.size() <= 1;
+    }
+
+    /** Retorna la serpiente ganadora (si hay exactamente 1 viva) o null */
+    public synchronized Snake getWinner() {
+        if (snakes.size() == 1) {
+            return snakes.get(0);
+        }
+        return null;
+    }
 }
