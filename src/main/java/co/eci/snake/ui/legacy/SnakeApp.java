@@ -49,7 +49,10 @@ public final class SnakeApp extends JFrame {
     }
 
     this.gamePanel = new GamePanel(board, () -> snakes);
-    this.actionButton = new JButton("Action");
+    this.actionButton = new JButton("Iniciar");
+
+    // El juego comienza pausado, esperando que el usuario presione Iniciar
+    board.setPaused(true);
 
     setLayout(new BorderLayout());
     add(gamePanel, BorderLayout.CENTER);
@@ -143,12 +146,20 @@ public final class SnakeApp extends JFrame {
   }
 
   private void togglePause() {
-    if ("Action".equals(actionButton.getText())) {
-      actionButton.setText("Resume");
+    String currentText = actionButton.getText();
+    if ("Iniciar".equals(currentText)) {
+      // Estado: Iniciar -> el juego comienza
+      actionButton.setText("Pausar");
+      board.setPaused(false);
+      clock.resume();
+    } else if ("Pausar".equals(currentText)) {
+      // Estado: Pausar -> el juego se pausa
+      actionButton.setText("Reanudar");
       clock.pause();
       board.setPaused(true);
     } else {
-      actionButton.setText("Action");
+      // Estado: Reanudar -> el juego continúa
+      actionButton.setText("Pausar");
       clock.resume();
       board.setPaused(false);
     }

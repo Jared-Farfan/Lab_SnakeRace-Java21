@@ -1,7 +1,9 @@
 package co.eci.snake.core;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -16,6 +18,7 @@ public final class Board {
     private final Set<Position> obstacles = new HashSet<>();
     private final Set<Position> turbo = new HashSet<>();
     private final Map<Position, Position> teleports = new HashMap<>();
+    private final Set<Position> freePositions = new HashSet<>();  // Pool de posiciones libres
     private boolean paused = false;
     private Object pauseLock = new Object();
 
@@ -29,14 +32,20 @@ public final class Board {
         }
         this.width = width;
         this.height = height;
+        // Inicializar pool con todas las posiciones
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                freePositions.add(new Position(x, y));
+            }
+        }
         for (int i = 0; i < 6; i++) {
-            mice.add(randomEmpty());
+            mice.add(takeRandomFree());
         }
         for (int i = 0; i < 4; i++) {
-            obstacles.add(randomEmpty());
+            obstacles.add(takeRandomFree());
         }
         for (int i = 0; i < 3; i++) {
-            turbo.add(randomEmpty());
+            turbo.add(takeRandomFree());
         }
         createTeleportPairs(2);
     }
@@ -65,16 +74,24 @@ public final class Board {
         return new HashMap<>(teleports);
     }
 
-    public synchronized MoveResult step(Snake snake) {
+    /**
+     * Espera si el juego está pausado. Debe llamarse ANTES de step().
+     * Esto evita deadlock porque no adquiere el lock de Board.
+     */
+    public void waitIfPaused() {
         synchronized (pauseLock) {
             while (paused) {
                 try {
                     pauseLock.wait();
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
+                    return;
                 }
             }
         }
+    }
+
+    public synchronized MoveResult step(Snake snake) {
         Objects.requireNonNull(snake, "snake");
         var head = snake.head();
         var dir = snake.direction();
@@ -92,14 +109,21 @@ public final class Board {
 
         boolean ateMouse = mice.remove(next);
         boolean ateTurbo = turbo.remove(next);
+        
+        // Devolver posiciones liberadas al pool
+        if (ateMouse) releasePosition(next);
+        if (ateTurbo) releasePosition(next);
 
         snake.advance(next, ateMouse);
 
         if (ateMouse) {
-            mice.add(randomEmpty());
-            obstacles.add(randomEmpty());
+            Position newMouse = takeRandomFree();
+            Position newObstacle = takeRandomFree();
+            if (newMouse != null) mice.add(newMouse);
+            if (newObstacle != null) obstacles.add(newObstacle);
             if (ThreadLocalRandom.current().nextDouble() < 0.2) {
-                turbo.add(randomEmpty());
+                Position newTurbo = takeRandomFree();
+                if (newTurbo != null) turbo.add(newTurbo);
             }
         }
 
@@ -117,25 +141,38 @@ public final class Board {
 
     private void createTeleportPairs(int pairs) {
         for (int i = 0; i < pairs; i++) {
-            Position a = randomEmpty();
-            Position b = randomEmpty();
-            teleports.put(a, b);
-            teleports.put(b, a);
+            Position a = takeRandomFree();
+            Position b = takeRandomFree();
+            if (a != null && b != null) {
+                teleports.put(a, b);
+                teleports.put(b, a);
+            }
         }
     }
 
-    private Position randomEmpty() {
-        var rnd = ThreadLocalRandom.current();
-        Position p;
-        int guard = 0;
-        do {
-            p = new Position(rnd.nextInt(width), rnd.nextInt(height));
-            guard++;
-            if (guard > width * height * 2) {
-                break;
-            }
-        } while (mice.contains(p) || obstacles.contains(p) || turbo.contains(p) || teleports.containsKey(p));
-        return p;
+    /**
+     * Obtiene y remueve una posición aleatoria del pool de posiciones libres.
+     * Complejidad O(n) para conversión a lista, pero evita loops infinitos.
+     * @return posición libre aleatoria, o null si no hay posiciones disponibles
+     */
+    private Position takeRandomFree() {
+        if (freePositions.isEmpty()) {
+            return null;  // No hay posiciones libres
+        }
+        List<Position> freeList = new ArrayList<>(freePositions);
+        int idx = ThreadLocalRandom.current().nextInt(freeList.size());
+        Position selected = freeList.get(idx);
+        freePositions.remove(selected);
+        return selected;
+    }
+
+    /**
+     * Devuelve una posición al pool de posiciones libres.
+     */
+    private void releasePosition(Position p) {
+        if (p != null) {
+            freePositions.add(p);
+        }
     }
 
     public void setPaused(boolean paused) {

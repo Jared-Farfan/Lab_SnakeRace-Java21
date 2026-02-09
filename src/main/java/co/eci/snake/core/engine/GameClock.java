@@ -1,12 +1,11 @@
 package co.eci.snake.core.engine;
 
-import co.eci.snake.core.GameState;
-
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
+import co.eci.snake.core.GameState;
 
 public final class GameClock implements AutoCloseable {
   private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -21,9 +20,10 @@ public final class GameClock implements AutoCloseable {
   }
 
   public void start() {
-    if (state.compareAndSet(GameState.STOPPED, GameState.RUNNING)) {
+    if (state.compareAndSet(GameState.STOPPED, GameState.PAUSED)) {
       scheduler.scheduleAtFixedRate(() -> {
-        if (state.get() == GameState.RUNNING) tick.run();
+        // Siempre ejecutar tick (repaint) para mostrar el tablero, incluso en pausa
+        tick.run();
       }, 0, periodMillis, TimeUnit.MILLISECONDS);
     }
   }
