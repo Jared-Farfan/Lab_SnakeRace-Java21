@@ -18,6 +18,7 @@ public final class SnakeRunner implements Runnable {
     this.board = board;
   }
 
+  /** Ejecuta el hilo de la serpiente */
   @Override
   public void run() {
     try {
@@ -42,11 +43,13 @@ public final class SnakeRunner implements Runnable {
     }
   }
 
+  /** Decide aleatoriamente si la serpiente debe girar */
   private void maybeTurn() {
     double p = (turboTicks > 0) ? 0.05 : 0.10;
     if (ThreadLocalRandom.current().nextDouble() < p) randomTurn();
   }
-  // Randomly change direction with a certain probability to make the snake's movement less predictable
+  
+  /** Realiza un giro aleatorio de la serpiente */
   private void randomTurn() {
     var dirs = Direction.values();
     snake.turn(dirs[ThreadLocalRandom.current().nextInt(dirs.length)]);

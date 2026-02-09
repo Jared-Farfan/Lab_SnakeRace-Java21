@@ -24,10 +24,12 @@ public final class Board {
     private boolean paused = false;
     private Object pauseLock = new Object();
 
+    /** Resultados posibles al mover una serpiente */
     public enum MoveResult {
         MOVED, ATE_MOUSE, HIT_OBSTACLE, ATE_TURBO, TELEPORTED
     }
 
+    /** Crea un tablero de las dimensiones dadas y posiciona elementos iniciales */
     public Board(int width, int height) {
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("Board dimensions must be positive");
@@ -52,26 +54,32 @@ public final class Board {
         createTeleportPairs(2);
     }
 
+    /** Retorna el ancho del tablero */
     public int width() {
         return width;
     }
 
+    /** Retorna la altura del tablero */
     public int height() {
         return height;
     }
 
+    /** Retorna una copia del conjunto de posiciones de ratones */
     public synchronized Set<Position> mice() {
         return new HashSet<>(mice);
     }
 
+    /** Retorna una copia del conjunto de posiciones de obstáculos */
     public synchronized Set<Position> obstacles() {
         return new HashSet<>(obstacles);
     }
 
+    /** Retorna una copia del conjunto de posiciones de turbo */
     public synchronized Set<Position> turbo() {
         return new HashSet<>(turbo);
     }
 
+    /** Retorna una copia del mapa de teletransportadores */
     public synchronized Map<Position, Position> teleports() {
         return new HashMap<>(teleports);
     }
@@ -93,6 +101,7 @@ public final class Board {
         }
     }
 
+    /** Avanza la serpiente una posición en su dirección actual */
     public synchronized MoveResult step(Snake snake) {
         Objects.requireNonNull(snake, "snake");
         var head = snake.head();
@@ -147,6 +156,9 @@ public final class Board {
         return MoveResult.MOVED;
     }
 
+    /**
+     * Crea pares de teletransportadores en posiciones aleatorias.
+     */
     private void createTeleportPairs(int pairs) {
         for (int i = 0; i < pairs; i++) {
             Position a = takeRandomFree();
@@ -183,6 +195,7 @@ public final class Board {
         }
     }
 
+    /** Establece el estado de pausa del juego */
     public void setPaused(boolean paused) {
         synchronized (pauseLock) {
             this.paused = paused;
@@ -192,10 +205,12 @@ public final class Board {
         }
     }
 
+    /** Retorna una copia de la lista de serpientes muertas */
     public synchronized List<Snake> getDeadSnakes() {
         return new ArrayList<>(deadSnakes);
     }
     
+    /** Agrega una serpiente muerta al tablero */
     public synchronized void addDeadSnake(Snake snake) {
         this.deadSnakes.add(snake);
         this.snakes.remove(snake);
