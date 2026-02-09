@@ -159,6 +159,9 @@ Si el tablero se encontrara lleno de objetos nunca saldria del blucle hasta q no
   ![alt text](img/200snakes1.png)
 
 - El juego **no debe romperse**: sin `ConcurrentModificationException`, sin lecturas inconsistentes, sin _deadlocks_.
+
+  Gracias a los metodos synchronized los hilos no trabajan sobre un mismo objeto generando errores.
+
 - Si habilitas **teleports** y **turbo**, verifica que las reglas no introduzcan carreras.
 
 > Entregables detallados más abajo.
