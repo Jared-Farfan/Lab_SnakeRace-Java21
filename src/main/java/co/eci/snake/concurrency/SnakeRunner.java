@@ -25,7 +25,7 @@ public final class SnakeRunner implements Runnable {
         // Esperar si el juego está pausado (sin bloquear el lock de Board)
         board.waitIfPaused();
         
-        //maybeTurn();  // para qutar el movimiento aleatorio y hacer que la serpiente siga una trayectoria más predecible
+        maybeTurn();  // para qutar el movimiento aleatorio y hacer que la serpiente siga una trayectoria más predecible
         var res = board.step(snake);
         if (res == Board.MoveResult.HIT_OBSTACLE) {
         board.addDeadSnake(snake);
