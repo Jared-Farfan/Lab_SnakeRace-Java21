@@ -134,13 +134,6 @@ Existia un riesgo de alta espera e incluso nunca salir del bluque
 
 Si el tablero se encontrara lleno de objetos nunca saldria del blucle hasta q no encontrara un espacio vacio donde poner los objetos y el programa moririra.
 
-### 3) Control de ejecución seguro (UI)
-
-- Implementa la **UI** con **Iniciar / Pausar / Reanudar** (ya existe el botón _Action_ y el reloj `GameClock`).
-- Al **Pausar**, muestra de forma **consistente** (sin _tearing_):
-  - La **serpiente viva más larga**.
-  - La **peor serpiente** (la que **primero murió**).
-- Considera que la suspensión **no es instantánea**; coordina para que el estado mostrado no quede “a medias”.
 
 ### 3) Control de ejecución seguro (UI)
 
@@ -150,7 +143,7 @@ Si el tablero se encontrara lleno de objetos nunca saldria del blucle hasta q no
   - La **peor serpiente** (la que **primero murió**).
 - Considera que la suspensión **no es instantánea**; coordina para que el estado mostrado no quede “a medias”.
 
-  Erro en la pausa, se añadio un metodo en boar para notificar a los hilos y que se detengan de la forma correcta.
+  se corrigió el error en la pausa, se añadio un metodo en board para notificar a los hilos y que se detengan de la forma correcta.
   ![alt text](img/pausaBoard.png)
 
   Como no se tiene una logica inicial de muerte se definio como muerte si una serpiente choca con un obstaculo u otra serpiente, modificamos la logica para tener las serpientes contenidas en board y para ver las estadisticas al pausar el juego.
@@ -159,6 +152,12 @@ Si el tablero se encontrara lleno de objetos nunca saldria del blucle hasta q no
 ### 4) Robustez bajo carga
 
 - Ejecuta con **N alto** (`-Dsnakes=20` o más) y/o aumenta la velocidad.
+
+  juego con 200 snakes.
+  ![alt text](img/200snakes.png)
+  
+  ![alt text](img/200snakes1.png)
+
 - El juego **no debe romperse**: sin `ConcurrentModificationException`, sin lecturas inconsistentes, sin _deadlocks_.
 - Si habilitas **teleports** y **turbo**, verifica que las reglas no introduzcan carreras.
 
