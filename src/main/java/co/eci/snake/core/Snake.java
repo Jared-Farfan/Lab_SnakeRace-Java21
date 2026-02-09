@@ -30,6 +30,10 @@ public final class Snake {
   }
 
   public Position head() { return body.peekFirst(); }
+  
+  /** Retorna la longitud actual de la serpiente */
+  public int length() { return body.size(); }
+  
   // Method to get a snapshot of the snake's body positions for rendering or collision detection
   public Deque<Position> snapshot() { return new ArrayDeque<>(body); }
   // Method to advance the snake's position based on its current direction and whether it has eaten a mouse

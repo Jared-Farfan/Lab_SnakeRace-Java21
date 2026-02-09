@@ -19,6 +19,8 @@ public final class Board {
     private final Set<Position> turbo = new HashSet<>();
     private final Map<Position, Position> teleports = new HashMap<>();
     private final Set<Position> freePositions = new HashSet<>();  // Pool de posiciones libres
+    private final List<Snake> snakes = new ArrayList<>();  // Lista de serpientes vivas
+    private final List<Snake> deadSnakes = new ArrayList<>();  // Lista de serpientes muertas
     private boolean paused = false;
     private Object pauseLock = new Object();
 
@@ -99,6 +101,12 @@ public final class Board {
 
         if (obstacles.contains(next)) {
             return MoveResult.HIT_OBSTACLE;
+        }
+
+        for (Snake other : snakes) {
+            if (other != snake && other.snapshot().contains(next)) {
+                return MoveResult.HIT_OBSTACLE;
+            }
         }
 
         boolean teleported = false;
@@ -182,5 +190,35 @@ public final class Board {
                 pauseLock.notifyAll();
             }
         }
+    }
+
+    public synchronized List<Snake> getDeadSnakes() {
+        return new ArrayList<>(deadSnakes);
+    }
+    
+    public synchronized void addDeadSnake(Snake snake) {
+        this.deadSnakes.add(snake);
+        this.snakes.remove(snake);
+    }
+
+    /** Agrega una serpiente al tablero */
+    public synchronized void addSnake(Snake snake) {
+        snakes.add(snake);
+    }
+
+    /** Retorna una copia de la lista de serpientes */
+    public synchronized List<Snake> getSnakes() {
+        return new ArrayList<>(snakes);
+    }
+
+    /** Retorna la serpiente en el índice dado */
+    public synchronized Snake getSnake(int index) {
+        if (index < 0 || index >= snakes.size()) return null;
+        return snakes.get(index);
+    }
+
+    /** Retorna el número de serpientes */
+    public synchronized int snakeCount() {
+        return snakes.size();
     }
 }

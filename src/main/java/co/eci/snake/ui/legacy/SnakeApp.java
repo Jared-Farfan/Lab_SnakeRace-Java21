@@ -17,6 +17,7 @@ import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -33,8 +34,8 @@ public final class SnakeApp extends JFrame {
   private final Board board;
   private final GamePanel gamePanel;
   private final JButton actionButton;
+  private final JLabel statsLabel;
   private final GameClock clock;
-  private final java.util.List<Snake> snakes = new java.util.ArrayList<>();
 
   public SnakeApp() {
     super("The Snake Race");
@@ -45,18 +46,24 @@ public final class SnakeApp extends JFrame {
       int x = 2 + (i * 3) % board.width();
       int y = 2 + (i * 2) % board.height();
       var dir = Direction.values()[i % Direction.values().length];
-      snakes.add(Snake.of(x, y, dir));
+      board.addSnake(Snake.of(x, y, dir));
     }
 
-    this.gamePanel = new GamePanel(board, () -> snakes);
+    this.gamePanel = new GamePanel(board, board::getSnakes);
     this.actionButton = new JButton("Iniciar");
+    this.statsLabel = new JLabel("Presiona Iniciar para comenzar");
 
     // El juego comienza pausado, esperando que el usuario presione Iniciar
     board.setPaused(true);
 
+    // Panel inferior con botón y estadísticas
+    JPanel bottomPanel = new JPanel(new BorderLayout());
+    bottomPanel.add(actionButton, BorderLayout.WEST);
+    bottomPanel.add(statsLabel, BorderLayout.CENTER);
+
     setLayout(new BorderLayout());
     add(gamePanel, BorderLayout.CENTER);
-    add(actionButton, BorderLayout.SOUTH);
+    add(bottomPanel, BorderLayout.SOUTH);
 
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     pack();
@@ -65,7 +72,7 @@ public final class SnakeApp extends JFrame {
     this.clock = new GameClock(60, () -> SwingUtilities.invokeLater(gamePanel::repaint));
 
     var exec = Executors.newVirtualThreadPerTaskExecutor();
-    snakes.forEach(s -> exec.submit(new SnakeRunner(s, board)));
+    board.getSnakes().forEach(s -> exec.submit(new SnakeRunner(s, board)));
 
     actionButton.addActionListener((ActionEvent e) -> togglePause());
 
@@ -77,7 +84,7 @@ public final class SnakeApp extends JFrame {
       }
     });
 
-    var player = snakes.get(0);
+    var player = board.getSnake(0);
     InputMap im = gamePanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
     ActionMap am = gamePanel.getActionMap();
     im.put(KeyStroke.getKeyStroke("LEFT"), "left");
@@ -109,8 +116,8 @@ public final class SnakeApp extends JFrame {
       }
     });
 
-    if (snakes.size() > 1) {
-      var p2 = snakes.get(1);
+    if (board.snakeCount() > 1) {
+      var p2 = board.getSnake(1);
       im.put(KeyStroke.getKeyStroke('A',0), "p2-left");
       im.put(KeyStroke.getKeyStroke('D',0), "p2-right");
       im.put(KeyStroke.getKeyStroke('W',0), "p2-up");
@@ -150,6 +157,7 @@ public final class SnakeApp extends JFrame {
     if ("Iniciar".equals(currentText)) {
       // Estado: Iniciar -> el juego comienza
       actionButton.setText("Pausar");
+      statsLabel.setText("Juego en curso...");
       board.setPaused(false);
       clock.resume();
     } else if ("Pausar".equals(currentText)) {
@@ -157,12 +165,47 @@ public final class SnakeApp extends JFrame {
       actionButton.setText("Reanudar");
       clock.pause();
       board.setPaused(true);
+      showStats();
     } else {
       // Estado: Reanudar -> el juego continúa
       actionButton.setText("Pausar");
+      statsLabel.setText("Juego en curso...");
       clock.resume();
       board.setPaused(false);
     }
+  }
+
+  private void showStats() {
+    // Encontrar la serpiente viva más larga
+    List<Snake> snakes = board.getSnakes();
+    Snake longest = null;
+    int maxLen = 0;
+    for (int i = 0; i < snakes.size(); i++) {
+      Snake s = snakes.get(i);
+      int len = s.length();
+      if (len > maxLen) {
+        maxLen = len;
+        longest = s;
+      }
+    }
+    int longestIdx = longest != null ? snakes.indexOf(longest) : -1;
+
+    // Obtener la primera serpiente que murió
+    List<Snake> dead = board.getDeadSnakes();
+    Snake firstDead = dead.isEmpty() ? null : dead.get(0);
+    int firstDeadIdx = firstDead != null ? snakes.indexOf(firstDead) : -1;
+
+    // Construir mensaje de estadísticas
+    StringBuilder sb = new StringBuilder("  ");
+    if (longest != null) {
+      sb.append("Más larga: Serpiente ").append(longestIdx).append(" (").append(maxLen).append(" celdas)");
+    }
+    if (firstDead != null) {
+      sb.append("  |  Primera en morir: Serpiente ").append(firstDeadIdx);
+    } else {
+      sb.append("  |  Ninguna ha muerto aún");
+    }
+    statsLabel.setText(sb.toString());
   }
 
   public static final class GamePanel extends JPanel {

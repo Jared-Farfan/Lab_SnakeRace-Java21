@@ -28,7 +28,8 @@ public final class SnakeRunner implements Runnable {
         maybeTurn();  // para qutar el movimiento aleatorio y hacer que la serpiente siga una trayectoria más predecible
         var res = board.step(snake);
         if (res == Board.MoveResult.HIT_OBSTACLE) {
-        randomTurn();  // Si choca con un obstáculo, intenta girar para evitarlo
+        board.addDeadSnake(snake);
+        break;  // Si choca con un obstáculo, intenta girar para evitarlo
         } else if (res == Board.MoveResult.ATE_TURBO) {
           turboTicks = 100;
         }

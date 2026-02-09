@@ -153,7 +153,8 @@ Si el tablero se encontrara lleno de objetos nunca saldria del blucle hasta q no
   Erro en la pausa, se añadio un metodo en boar para notificar a los hilos y que se detengan de la forma correcta.
   ![alt text](img/pausaBoard.png)
 
-  
+  Como no se tiene una logica inicial de muerte se definio como muerte si una serpiente choca con un obstaculo u otra serpiente, modificamos la logica para tener las serpientes contenidas en board y para ver las estadisticas al pausar el juego.
+  ![alt text](img/estadisticas.png)
 
 ### 4) Robustez bajo carga
 
